@@ -220,8 +220,9 @@
 
   async function unblock(userId, screenName) {
     if (!auth) { lastError = '타임라인을 조금 내린 뒤 다시 눌러주세요.'; renderSoon(); return; }
-    const status = await callApi('blocks/destroy.json', userId);
-    if (status !== 200) { lastError = `차단 해제 실패: HTTP ${status}`; renderSoon(); return; }
+    let status = 0;
+    try { status = await callApi('blocks/destroy.json', userId); } catch { /* 연결 오류는 아래 안내로 처리 */ }
+    if (status !== 200) { lastError = `차단 해제 실패: ${status ? 'HTTP ' + status : '연결 오류'}`; renderSoon(); return; }
     allow(screenName);
     const entry = flagged.get(userId);
     if (entry) entry.status = 'allowed';
