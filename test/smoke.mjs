@@ -41,6 +41,7 @@ function run(config, store = { 'blue-sweep-v1': JSON.stringify(config) }) {
   add({ id_str: 't5', full_text: '수익 인증', user: user('5', 'ad_e', { age: 60, fo: 1200, fr: 1500, st: 9000, bio: '맞팔 수익화' }) }, { advertiser: true });
   add({ id_str: 't6', full_text: '수익 인증', user: user('6', 'plain_f', { age: 60, fo: 1200, fr: 1500, st: 9000, bio: '맞팔 수익화', blue: false }) });
   add({ id_str: 't7', full_text: '수익 인증', user: user('7', 'biz_g', { age: 60, fo: 1200, fr: 1500, st: 9000, bio: '맞팔 수익화', vt: 'Business' }) });
+  add({ id_str: 't8', full_text: '오늘 점심', user: user('8', 'stats_h', { age: 60, fo: 1200, fr: 1500, st: 9000, bio: '일상' }) });
 
   for (const file of ['classifier.js', 'content.js']) vm.runInContext(fs.readFileSync(path.join(dir, file), 'utf8'), ctx, { filename: file });
   return { ctx, store, articles, intervals, timeouts, fetches, XHR };
@@ -54,16 +55,16 @@ let t = run({});
 new t.XHR().setRequestHeader('authorization', 'Bearer TEST');
 for (const fn of t.intervals) await fn();
 await flush();
-assert.deepEqual(states(t), ['mark', 'mark', '-', '-', '-', '-', '-']);
+assert.deepEqual(states(t), ['mark', 'mark', '-', '-', '-', '-', '-', 'mark']);
 assert.match(t.articles[0].dataset.bbLabel, /^@slop_a \d+점/);
 assert.match(t.articles[1].dataset.bbLabel, /품앗이답글/);
 assert.equal(t.fetches.length, 0);
 
-// 자동 차단 모드: 숨김, 순차 차단 요청, 기록 저장
+// 자동 차단 모드: 숨김, 순차 차단 요청, 기록 저장. 내용 신호 없는 stats_h는 숨기기만
 t = run({ mode: 'block', intervalSec: 0 });
 new t.XHR().setRequestHeader('authorization', 'Bearer TEST');
 for (let i = 0; i < 4; i++) { for (const fn of t.intervals) await fn(); await flush(); }
-assert.deepEqual(states(t), ['hide', 'hide', '-', '-', '-', '-', '-']);
+assert.deepEqual(states(t), ['hide', 'hide', '-', '-', '-', '-', '-', 'hide']);
 assert.deepEqual(t.fetches.map((f) => f.body), ['user_id=1', 'user_id=2']);
 assert.ok(t.fetches.every((f) => f.url === '/i/api/1.1/blocks/create.json' && f.csrf === 'csrf123'));
 const saved = JSON.parse(t.store['blue-sweep-v1']);

@@ -22,27 +22,29 @@
     const bioAndText = bio + '\n' + (text || '').toLowerCase();
     const mutual = user.following >= 500 && user.following * 3 > user.followers;
 
-    let score = 0;
+    let score = 0, signal = false;
     const why = [];
     const add = (points, reason) => { score += points; why.push(reason); };
+    // 계정 수치만으로는 차단하지 않도록 내용 신호를 따로 표시
+    const addSignal = (points, reason) => { add(points, reason); signal = true; };
 
     if (mutual) add(2, '맞팔');
     if (days < 180) add(2, '신생'); else if (days < 730) add(1, '2년미만');
     if (rate >= 80) add(4, '초다작'); else if (rate >= 20) add(2, '다작'); else if (rate >= 5) add(1, '활발');
     if (user.statuses >= 200 && mediaRatio < 0.15) add(1, '텍스트');
 
-    if (RX.monet.test(bioAndText) || RX.growthBio.test(bio)) add(3, '수익화');
+    if (RX.monet.test(bioAndText) || RX.growthBio.test(bio)) addSignal(3, '수익화');
     // 머스크 본인처럼 이름이 걸리는 대형 계정 제외
     const teslaName = user.followers < 1000000 && RX.tesla.test(names);
     if (teslaName || RX.tesla.test(bio)) {
-      add(4, '테슬라');
+      addSignal(4, '테슬라');
       if (teslaName || RX.teslaFan.test(bio)) add(2, '팬');
     }
-    if (RX.aiHype.test(bio)) add(3, 'AI 정보'); else if (RX.topic.test(bio)) add(2, '주제');
-    if (RX.promo.test(bio)) add(1, '광고문의');
-    if (RX.bait.test(bioAndText)) add(2, '낚시');
+    if (RX.aiHype.test(bio)) addSignal(3, 'AI 정보'); else if (RX.topic.test(bio)) addSignal(2, '주제');
+    if (RX.promo.test(bio)) addSignal(1, '광고문의');
+    if (RX.bait.test(bioAndText)) addSignal(2, '낚시');
 
-    return { score, why, mutual, active: rate >= 5 };
+    return { score, why, signal, mutual, active: rate >= 5 };
   }
 
   const api = { classify, RX };

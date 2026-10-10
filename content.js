@@ -101,7 +101,7 @@
   const queue = [];            // 차단 대기 userId
   const manual = new Set();    // 패널에서 직접 차단을 누른 userId, 모드와 무관하게 처리
 
-  const tierOf = (score) => (score >= cfg.blockAt ? 'block' : 'hide');
+  const tierOf = (entry) => (entry.score >= cfg.blockAt && entry.signal ? 'block' : 'hide');
   const isKnownSlop = (userId) => {
     const entry = flagged.get(userId);
     return (entry && entry.tier === 'block') || cfg.log.some((item) => item.id === userId);
@@ -114,6 +114,7 @@
     if (result.active && parentId && parentId !== user.id && isKnownSlop(parentId)) {
       result.score += result.mutual ? 2 : 1;
       result.why.push('품앗이답글');
+      result.signal = true;
     }
     return result;
   }
@@ -142,12 +143,12 @@
 
     let entry = flagged.get(user.id);
     if (!entry) {
-      entry = { user, score: result.score, why: result.why, tier: 'hide', status: 'flagged', tries: 0 };
+      entry = { user, score: result.score, why: result.why, signal: result.signal, tier: 'hide', status: 'flagged', tries: 0 };
       flagged.set(user.id, entry);
     } else if (result.score > entry.score) {
-      Object.assign(entry, { user, score: result.score, why: result.why });
+      Object.assign(entry, { user, score: result.score, why: result.why, signal: result.signal });
     }
-    if (entry.status === 'flagged') entry.tier = tierOf(entry.score);
+    if (entry.status === 'flagged') entry.tier = tierOf(entry);
 
     const dry = cfg.mode === 'dry';
     article.dataset.bbLabel = `@${user.screenName} ${result.score}점: ${result.why.join(', ')}${dry ? '' : '. 누르면 펼칩니다'}`;
@@ -164,7 +165,7 @@
 
   function rejudgeAll() {
     for (const [id, entry] of flagged) if (entry.status === 'flagged' && entry.score < cfg.hideAt) flagged.delete(id);
-    for (const entry of flagged.values()) if (entry.status === 'flagged') entry.tier = tierOf(entry.score);
+    for (const entry of flagged.values()) if (entry.status === 'flagged') entry.tier = tierOf(entry);
     for (const article of document.querySelectorAll('article[data-bb-id]')) delete article.dataset.bbId;
     if (cfg.mode === 'block') for (const [id, entry] of flagged) if (entry.tier === 'block') enqueue(id);
     scan();
