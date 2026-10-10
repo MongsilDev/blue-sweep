@@ -84,9 +84,4 @@ const panel = texts(root);
 assert.ok(panel.some((s) => s.startsWith('@slop_a ')) && panel.some((s) => s.startsWith('@reply_b ')));
 assert.equal(panel.filter((s) => s === '해제').length, 2);
 
-// 이름 변경 전 저장 키는 새 키로 이전
-t = run(null, { 'padak-blocker-v1': JSON.stringify({ mode: 'hide', log: saved.log }) });
-assert.equal(t.store['padak-blocker-v1'], undefined);
-assert.equal(JSON.parse(t.store['blue-sweep-v1']).mode, 'hide');
-
 console.log('ok');

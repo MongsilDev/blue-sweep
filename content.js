@@ -16,23 +16,15 @@
     allow: [],            // screen_name 허용 목록
     log: [],              // 차단 기록
     day: '', dayCount: 0,
-    totalBlocked: null,   // log는 500개까지만 남아 누적 수는 따로 셈
+    totalBlocked: 0,      // log는 500개까지만 남아 누적 수는 따로 셈
   };
   const RECENT_BLOCKS = 20;   // 패널에 보여 줄 최근 차단 계정 수
-
-  // 이름 변경 전 저장 키에서 한 번 이전
-  const OLD_KEY = 'padak-blocker-v1';
-  if (localStorage.getItem(KEY) === null && localStorage.getItem(OLD_KEY) !== null) {
-    localStorage.setItem(KEY, localStorage.getItem(OLD_KEY));
-    localStorage.removeItem(OLD_KEY);
-  }
 
   const loadConfig = () => {
     try { return Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(KEY) || '{}')); }
     catch { return { ...DEFAULTS }; }
   };
   const cfg = loadConfig();
-  if (cfg.totalBlocked === null) cfg.totalBlocked = cfg.log.length;
   const save = () => localStorage.setItem(KEY, JSON.stringify(cfg));
   // 다른 탭에서 바뀐 설정과 차단 기록 반영
   window.addEventListener('storage', (event) => { if (event.key === KEY) Object.assign(cfg, loadConfig()); });
