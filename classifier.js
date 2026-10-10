@@ -32,7 +32,8 @@
     if (user.statuses >= 200 && mediaRatio < 0.15) add(1, '텍스트');
 
     if (RX.monet.test(bioAndText) || RX.growthBio.test(bio)) add(3, '수익화');
-    const teslaName = RX.tesla.test(names);
+    // 머스크 본인처럼 이름이 걸리는 대형 계정 제외
+    const teslaName = user.followers < 1000000 && RX.tesla.test(names);
     if (teslaName || RX.tesla.test(bio)) {
       add(4, '테슬라');
       if (teslaName || RX.teslaFan.test(bio)) add(2, '팬');
