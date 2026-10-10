@@ -3,7 +3,7 @@
   const RX = {
     tesla: /테슬라|일론|머스크|사이버트럭|옵티머스|로보택시|tesla|tsla|(^|[^a-z])(fsd|elon|musk)([^a-z]|$)|cybertruck|robotaxi/u,
     teslaFan: /tsla|fsd|테슬람|테슬라(를)? ?(사랑|투자|주주|몰빵|팬)|fan of tesla|tesla (fan|investor|bull|shareholder|creator|advocate)/u,
-    monet: /수익 ?(창출|화|인증|정산|공개)|정직원|주급|파딱|맞팔|선팔|실버버튼|팔로우 ?(해 ?주|하면|하시면|부탁|제한)|creator revenue|monetiz|payout|follow ?back|follow (me )?for more/u,
+    monet: /수익 ?(창출|화|인증|정산|공개)|수제트|정직원|주급|파딱|맞팔|선팔|실버버튼|팔로우 ?(해 ?주|하면|하시면|부탁|제한)|creator revenue|monetiz|payout|follow ?back|follow (me )?for more/u,
     // 본문에서는 흔한 말이라 bio에서만 검사
     growthBio: /grew my|x views|impressions/u,
     aiHype: /ai (tools|tips|news|guides|agents|automation|creator|influencer|educator|trends?)|free ai|ai[.] before|tech \/ ai|sharing (ai|tips|prompts)|helping (you|builders|founders|creators)|follow (to|for) |(prompts|guides|tips|tools)[^|]{0,30}(daily|every day)|ai ?(소식|트렌드|정보|뉴스|활용|툴|꿀팁)|ai 크리에이터|프롬프트|매일 (공유|정리)|소식 ?(전해|전달|공유)/u,

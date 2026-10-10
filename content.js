@@ -150,9 +150,9 @@
     }
     if (entry.status === 'flagged') entry.tier = tierOf(entry);
 
-    const dry = cfg.mode === 'dry';
-    article.dataset.bbLabel = `@${user.screenName} ${result.score}점: ${result.why.join(', ')}${dry ? '' : '. 누르면 펼칩니다'}`;
-    article.dataset.bb = dry ? 'mark' : 'hide';
+    const markOnly = cfg.mode === 'dry' || !entry.signal;
+    article.dataset.bbLabel = `@${user.screenName} ${result.score}점: ${result.why.join(', ')}${markOnly ? '' : '. 누르면 펼칩니다'}`;
+    article.dataset.bb = markOnly ? 'mark' : 'hide';
     if (cfg.mode === 'block' && entry.tier === 'block') enqueue(user.id);
     renderSoon();
   }
