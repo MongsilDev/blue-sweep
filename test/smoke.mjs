@@ -8,10 +8,10 @@ const dir = path.join(import.meta.dirname, '..');
 const ago = (days) => new Date(Date.now() - days * 864e5).toUTCString();
 const user = (id, sn, o) => ({ id_str: id, screen_name: sn, name: sn, created_at: ago(o.age), description: o.bio || '', followers_count: o.fo, friends_count: o.fr, statuses_count: o.st, media_count: o.md || 0, is_blue_verified: o.blue !== false, following: !!o.following, followed_by: false, blocking: false, protected: false, verified_type: o.vt });
 
-function run(config, store = { 'blue-sweep-v1': JSON.stringify(config) }) {
+function run(config, store = { 'blue-sweep-v1': JSON.stringify(config) }, pathname = '/home') {
   const articles = [];
-  const add = (tweet, promoted) => articles.push({ dataset: {}, '__reactFiber$t': { memoizedProps: {}, return: { memoizedProps: { tweet, promotedContent: promoted }, return: null } } });
-  const mkEl = () => ({ children: [], listeners: {}, append(...c) { this.children.push(...c); }, addEventListener(type, fn) { this.listeners[type] = fn; }, replaceChildren(...c) { this.children = c; } });
+  const add = (tweet, promoted) => articles.push({ dataset: {}, labels: [], prepend(node) { this.labels.unshift(node); }, querySelector() { return null; }, '__reactFiber$t': { memoizedProps: {}, return: { memoizedProps: { tweet, promotedContent: promoted }, return: null } } });
+  const mkEl = () => ({ children: [], listeners: {}, append(...c) { this.children.push(...c); }, addEventListener(type, fn) { this.listeners[type] = fn; }, replaceChildren(...c) { this.children = c; }, querySelector() { return null; }, contains() { return false; }, remove() {} });
   const intervals = [], timeouts = [], fetches = [];
   function XHR() {}
   XHR.prototype.setRequestHeader = function () {};
@@ -29,6 +29,7 @@ function run(config, store = { 'blue-sweep-v1': JSON.stringify(config) }) {
     setTimeout: (fn) => { timeouts.push(fn); return timeouts.length; },
     addEventListener() {},
     Element: class {},
+    location: { pathname },
   };
   ctx.window = ctx;
   vm.createContext(ctx);
@@ -59,6 +60,12 @@ assert.deepEqual(states(t), ['hide', 'hide', '-', '-', '-', '-', '-', 'mark']);
 assert.match(t.articles[0].dataset.bbLabel, /^@slop_a \d+점/);
 assert.match(t.articles[1].dataset.bbLabel, /품앗이답글/);
 assert.equal(t.fetches.length, 0);
+assert.ok(t.articles[0].labels.length === 1 && t.articles[2].labels.length === 0);
+
+// 대상 계정의 프로필 화면에서는 그 계정만 접지 않음
+t = run({}, undefined, '/slop_a');
+for (const fn of t.intervals) await fn();
+assert.deepEqual(states(t).slice(0, 2), ['mark', 'hide']);
 
 // 표시만 모드: 숨기지 않고 표시만
 t = run({ mode: 'dry' });
@@ -83,10 +90,10 @@ t.articles.length = 0;
 for (const fn of t.intervals) await fn();
 const root = t.ctx.document.body.children[0];
 const pill = () => root.children.at(-1);
-assert.match(pill().textContent, /^차단 2,/);
+assert.match(pill().textContent, /^자동 차단: 탐지 \d+, 차단 2/);
 pill().listeners.click();
 const panel = texts(root);
-assert.ok(panel.some((s) => s.startsWith('@slop_a ')) && panel.some((s) => s.startsWith('@reply_b ')));
+assert.ok(panel.includes('@slop_a') && panel.includes('@reply_b'));
 assert.equal(panel.filter((s) => s === '해제').length, 2);
 
 console.log('ok');
