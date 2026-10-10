@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Blue Sweep",
+  "version": "0.1.0",
+  "description": "X 타임라인에서 수익형 파딱 계정을 점수로 가려내 표시하거나 숨기고 차단합니다.",
+  "content_scripts": [
+    {
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
+      "js": ["classifier.js", "content.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    }
+  ]
+}
