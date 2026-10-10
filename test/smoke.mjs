@@ -50,15 +50,20 @@ function run(config, store = { 'blue-sweep-v1': JSON.stringify(config) }) {
 const flush = () => new Promise((r) => setImmediate(r));
 const states = (t) => t.articles.map((a) => a.dataset.bb || '-');
 
-// 기본 표시만 모드: 대상 두 개만 표시, 요청 없음
+// 기본 자동 숨김 모드: 대상 두 개 숨김, 내용 신호 없는 stats_h는 표시만, 요청 없음
 let t = run({});
 new t.XHR().setRequestHeader('authorization', 'Bearer TEST');
 for (const fn of t.intervals) await fn();
 await flush();
-assert.deepEqual(states(t), ['mark', 'mark', '-', '-', '-', '-', '-', 'mark']);
+assert.deepEqual(states(t), ['hide', 'hide', '-', '-', '-', '-', '-', 'mark']);
 assert.match(t.articles[0].dataset.bbLabel, /^@slop_a \d+점/);
 assert.match(t.articles[1].dataset.bbLabel, /품앗이답글/);
 assert.equal(t.fetches.length, 0);
+
+// 표시만 모드: 숨기지 않고 표시만
+t = run({ mode: 'dry' });
+for (const fn of t.intervals) await fn();
+assert.deepEqual(states(t), ['mark', 'mark', '-', '-', '-', '-', '-', 'mark']);
 
 // 자동 차단 모드: 숨김, 순차 차단 요청, 기록 저장. 내용 신호 없는 stats_h는 표시만
 t = run({ mode: 'block', intervalSec: 0 });

@@ -7,7 +7,7 @@
   const { classify } = window.__blueSweep;
   const KEY = 'blue-sweep-v1';
   const DEFAULTS = {
-    mode: 'dry',          // 'dry' 표시만 | 'hide' 숨김 | 'block' 숨김 + 자동 차단
+    mode: 'hide',         // 'dry' 표시만 | 'hide' 자동 숨김 | 'block' 숨김 + 자동 차단
     blockAt: 6,           // 이 점수 이상이면 차단 대상
     hideAt: 5,            // 이 점수 이상이면 숨김 대상
     skipFollowers: true,  // 나를 팔로우하는 계정은 건드리지 않음
@@ -242,12 +242,13 @@
   const renderSoon = () => { if (!renderTimer) renderTimer = setTimeout(() => { renderTimer = null; render(); }, 300); };
 
   const CSS = `
+    article[data-bb="hide"], article[data-bb="mark"] { flex-wrap: wrap; }
     article[data-bb="hide"] > * { display: none !important; }
     article[data-bb="hide"]::before, article[data-bb="mark"]::before {
-      content: attr(data-bb-label); display: block; padding: 6px 16px; font: 13px/1.4 system-ui, sans-serif;
-      color: #8b98a5; cursor: pointer; }
-    article[data-bb="mark"] { outline: 2px solid #f5a623; outline-offset: -2px; }
-    article[data-bb="mark"]::before { color: #f5a623; cursor: default; }
+      content: attr(data-bb-label); flex: 0 0 100%; box-sizing: border-box; padding: 12px 16px;
+      font: 14px/1.4 system-ui, sans-serif; color: #71767b; cursor: pointer; }
+    article[data-bb="mark"] { box-shadow: inset 3px 0 0 #f5a623; }
+    article[data-bb="mark"]::before { padding: 10px 16px 0; font-size: 13px; color: #f5a623; cursor: default; }
     #bb-root { position: fixed; left: 12px; bottom: 12px; z-index: 9999; font: 13px/1.4 system-ui, sans-serif; color: #e7e9ea; }
     #bb-root button { font: inherit; color: inherit; background: #1d2a35; border: 1px solid #38444d; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
     #bb-root button.on { background: #1d9bf0; border-color: #1d9bf0; }
@@ -299,7 +300,7 @@
 
     const children = [];
     if (panelOpen) {
-      const modes = [['dry', '표시만'], ['hide', '숨김'], ['block', '자동 차단']].map(([mode, label]) => {
+      const modes = [['dry', '표시만'], ['hide', '자동 숨김'], ['block', '자동 차단']].map(([mode, label]) => {
         const button = el('button', { textContent: label, className: cfg.mode === mode ? 'on' : '' });
         button.addEventListener('click', () => { cfg.mode = mode; save(); rejudgeAll(); });
         return button;
