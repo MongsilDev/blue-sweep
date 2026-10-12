@@ -125,6 +125,11 @@
     if (read.promoted) return;
     const user = normalizeUser(tweet.user);
     if (!user.id || user.id === myId()) return;
+    article.dataset.bbUser = user.id;
+    // 차단했거나 차단 대기 중인 계정은 모드와 무관하게 접고 상태만 보여 줌
+    const known = flagged.get(user.id);
+    if (known && (known.status === 'queued' || known.status === 'blocked')) { stateLabel(article, known); return; }
+    if (cfg.log.some((item) => item.id === user.id)) { stateLabel(article, { user, status: 'blocked' }); return; }
     if (!user.blue || user.verifiedType || user.isFollowing || user.isProtected || user.blocking) return;
     if (cfg.skipFollowers && user.followedBy) return;
     if (cfg.allow.includes(user.screenName)) return;
@@ -173,9 +178,32 @@
   function enqueue(userId, isManual = false) {
     const entry = flagged.get(userId);
     if (!entry || entry.status !== 'flagged') return;
+    // 취소한 계정은 자동 차단에서 빼고 직접 누를 때만 다시 넣음
+    if (entry.cancelled && !isManual) return;
+    entry.cancelled = false;
     entry.status = 'queued';
-    if (isManual) manual.add(userId);
+    if (isManual) { manual.add(userId); refreshUser(userId); }
     queue.push(userId);
+  }
+
+  function cancelQueued(userId) {
+    const entry = flagged.get(userId);
+    if (!entry || entry.status !== 'queued') return;
+    entry.status = 'flagged';
+    entry.cancelled = true;
+    manual.delete(userId);
+    const index = queue.indexOf(userId);
+    if (index >= 0) queue.splice(index, 1);
+    refreshUser(userId);
+    renderSoon();
+  }
+
+  // 그 계정의 트윗을 화면에서 다시 판정
+  function refreshUser(userId) {
+    for (const article of document.querySelectorAll('article[data-bb-user]')) {
+      if (article.dataset.bbUser === userId) delete article.dataset.bbId;
+    }
+    scanSoon();
   }
 
   async function tick() {
@@ -201,8 +229,10 @@
       cfg.log.unshift({ id: userId, sn: entry.user.screenName, score: entry.score, why: entry.why, at: now });
       cfg.log.length = Math.min(cfg.log.length, 500);
       save();
+      refreshUser(userId);
     } else if (status === 400 || status === 404 || entry.tries >= 2) {
       entry.status = 'failed';   // 정지, 삭제된 계정이거나 두 번 실패라 이 계정만 건너뜀
+      refreshUser(userId);
     } else {
       // 요청 한도나 인증 문제일 수 있어 15분 대기 후 재시도
       queue.unshift(userId);
@@ -216,13 +246,14 @@
     if (!auth) { lastError = '타임라인을 조금 내린 뒤 다시 눌러주세요.'; renderSoon(); return; }
     let status = 0;
     try { status = await callApi('blocks/destroy.json', userId); } catch { /* 연결 오류는 아래 안내로 처리 */ }
-    if (status !== 200) { lastError = `차단 해제 실패: ${status ? 'HTTP ' + status : '연결 오류'}`; renderSoon(); return; }
+    if (status !== 200) { lastError = `차단 해제 실패: ${status ? 'HTTP ' + status : '연결 오류'}`; refreshUser(userId); renderSoon(); return; }
     allow(screenName);
     const entry = flagged.get(userId);
     if (entry) entry.status = 'allowed';
     if (cfg.log.some((item) => item.id === userId)) cfg.totalBlocked = Math.max(0, cfg.totalBlocked - 1);
     cfg.log = cfg.log.filter((item) => item.id !== userId);
     save();
+    refreshUser(userId);
     renderSoon();
   }
 
@@ -289,11 +320,36 @@
       if (event.target.classList && event.target.classList.contains('bb-user')) return;
       event.preventDefault();
       if (event.target === ok) allow(user.screenName);
-      else if (block && event.target === block) { enqueue(user.id, true); block.remove(); renderSoon(); }
+      else if (block && event.target === block) { enqueue(user.id, true); renderSoon(); }
       else if (toggle && (event.target === toggle || article.dataset.bb === 'hide')) {
         article.dataset.bb = article.dataset.bb === 'hide' ? 'shown' : 'hide';
         toggle.textContent = article.dataset.bb === 'hide' ? '펼치기' : '접기';
       }
+    });
+    article.prepend(label);
+  }
+
+  // 차단 대기나 차단한 계정의 트윗은 한 줄로 접고 취소, 해제 버튼만 둠
+  function stateLabel(article, entry) {
+    const { user } = entry;
+    clearMark(article);
+    article.dataset.bb = 'hide';
+    article.dataset.bbLabel = `@${user.screenName} ${entry.status}`;
+    const blocked = entry.status === 'blocked';
+    const action = el('button', { textContent: blocked ? '차단 해제' : '취소' });
+    const label = el('div', { className: 'bb-label bb-state' }, [
+      userLink(user.screenName),
+      el('span', { className: 'bb-why', textContent: blocked ? ' 차단함' : ' 차단 대기 중' }),
+      action,
+    ]);
+    label.addEventListener('auxclick', (event) => event.stopPropagation());
+    label.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (event.target.classList && event.target.classList.contains('bb-user')) return;
+      event.preventDefault();
+      if (event.target !== action) return;
+      if (blocked) { action.textContent = '해제 중'; action.disabled = true; unblock(user.id, user.screenName); }
+      else cancelQueued(user.id);
     });
     article.prepend(label);
   }
@@ -313,6 +369,7 @@
       font: 13px/1.4 system-ui, sans-serif; color: #71767b; cursor: default; }
     article[data-bb="mark"] .bb-label { color: #f5a623; }
     article[data-bb="hide"] .bb-label { padding: 12px 16px; cursor: pointer; }
+    article[data-bb="hide"] .bb-state { cursor: default; }
     .bb-user { color: inherit; font-weight: 600; text-decoration: none; }
     .bb-user:hover { text-decoration: underline; }
     .bb-why { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
