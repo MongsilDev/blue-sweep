@@ -375,6 +375,7 @@
     .bb-why { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .bb-label button { font: inherit; color: #1d9bf0; background: none; border: 0; padding: 0 6px; cursor: pointer; }
     .bb-label button:hover { text-decoration: underline; }
+    #bb-root[hidden] { display: none !important; }
     #bb-root { position: fixed; left: 12px; bottom: 12px; z-index: 9999; font: 13px/1.4 system-ui, sans-serif; color: #e7e9ea; }
     #bb-root button { font: inherit; color: inherit; background: #1d2a35; border: 1px solid #38444d; border-radius: 6px; padding: 2px 8px; cursor: pointer; }
     #bb-root button.on { background: #1d9bf0; border-color: #1d9bf0; }
@@ -419,6 +420,10 @@
       document.head.append(el('style', { textContent: CSS }));
       root = el('div', { id: 'bb-root' });
       document.body.append(root);
+      // 동영상 전체화면 위에 버튼이 남지 않게 숨김
+      const syncFullscreen = () => { root.hidden = !!document.fullscreenElement; };
+      document.addEventListener('fullscreenchange', syncFullscreen);
+      syncFullscreen();
     }
     // 입력 중에 다시 그리면 포커스가 빠지므로 미룸
     const active = document.activeElement;
