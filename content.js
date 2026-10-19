@@ -383,6 +383,7 @@
     #bb-panel { width: 340px; max-height: 60vh; overflow: auto; margin-bottom: 8px; padding: 12px; background: #15202b; border: 1px solid #38444d; border-radius: 12px; }
     #bb-panel h4 { margin: 10px 0 4px; font-size: 12px; color: #8b98a5; font-weight: 600; }
     #bb-panel .row { display: flex; gap: 6px; align-items: center; margin: 4px 0; flex-wrap: wrap; }
+    #bb-panel .msg { display: block; }
     #bb-panel .item { display: flex; gap: 6px; align-items: baseline; padding: 3px 0; border-top: 1px solid #22303c; }
     #bb-panel .item span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #bb-panel .bb-user { color: #e7e9ea; }
@@ -395,6 +396,7 @@
     for (const child of children) node.append(child);
     return node;
   };
+  const lines = (text) => text.split(/(?<=[.?!])\s+/).flatMap((line, i) => (i ? [el('br'), line] : [line]));
 
   function numberInput(field, label) {
     const input = el('input', { type: 'number', value: cfg[field] });
@@ -473,8 +475,8 @@
         el('div', { className: 'row' }, modes),
         el('div', { className: 'row' }, [numberInput('blockAt', '차단 기준'), numberInput('hideAt', '숨김 기준')]),
         el('div', { className: 'row' }, [checkbox('skipFollowers', '나를 팔로우하는 계정은 제외')]),
-        ...(status ? [el('div', { className: 'row', textContent: status })] : []),
-        ...(lastError ? [el('div', { className: 'row err', textContent: lastError })] : []),
+        ...(status ? [el('div', { className: 'row msg' }, lines(status))] : []),
+        ...(lastError ? [el('div', { className: 'row msg err' }, lines(lastError))] : []),
         el('h4', { textContent: list.length ? `탐지한 계정 ${list.length}개` : '아직 탐지한 계정이 없습니다' }),
         ...list,
         ...(recent.length ? [el('h4', { textContent: `최근 차단 ${recent.length}개, 누적 ${cfg.totalBlocked}개` }), ...recent] : []),
