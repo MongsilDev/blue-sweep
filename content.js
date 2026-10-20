@@ -313,7 +313,7 @@
       el('span', { className: 'bb-why', textContent: ` ${result.score}점: ${result.why.join(', ')}` }),
       ...buttons,
     ]);
-    // 트윗 열기 같은 X 쪽 클릭 처리로 넘어가지 않게 막음
+    // 트윗 열기 같은 X 쪽 클릭 처리로 이벤트 전달 차단
     label.addEventListener('auxclick', (event) => event.stopPropagation());
     label.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -427,7 +427,7 @@
       document.addEventListener('fullscreenchange', syncFullscreen);
       syncFullscreen();
     }
-    // 입력 중에 다시 그리면 포커스가 빠지므로 미룸
+    // 입력 중에 다시 그리면 입력칸이 포커스를 잃으므로 미룸
     const active = document.activeElement;
     if (active && active.tagName === 'INPUT' && root.contains(active)) { renderSoon(); return; }
     const oldPanel = root.querySelector('#bb-panel');

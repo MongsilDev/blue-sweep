@@ -34,7 +34,7 @@
     if (user.statuses >= 200 && mediaRatio < 0.15) add(1, '텍스트');
 
     if (RX.monet.test(bioAndText) || RX.growthBio.test(bio)) addSignal(3, '수익화');
-    // 머스크 본인처럼 이름이 걸리는 대형 계정 제외
+    // 머스크 본인처럼 이름이 테슬라 패턴과 일치하는 대형 계정 제외
     const teslaName = user.followers < 1000000 && RX.tesla.test(names);
     if (teslaName || RX.tesla.test(bio)) {
       addSignal(4, '테슬라');

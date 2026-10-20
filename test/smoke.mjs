@@ -34,7 +34,7 @@ function run(config, store = { 'blue-sweep-v1': JSON.stringify(config) }, pathna
   ctx.window = ctx;
   vm.createContext(ctx);
 
-  // 화면에 뜬 트윗들
+  // 화면에 표시된 트윗들
   add({ id_str: 't1', full_text: '오늘도 수익 인증합니다', user: user('1', 'slop_a', { age: 60, fo: 1200, fr: 1500, st: 9000, bio: '맞팔 100% 수익화 도전' }) });
   add({ id_str: 't2', full_text: '@slop_a 맞아요 ㅎㅎ', in_reply_to_user_id_str: '1', user: user('2', 'reply_b', { age: 400, fo: 900, fr: 1000, st: 4000, bio: '일상' }) });
   add({ id_str: 't3', full_text: '오늘 그림', user: user('3', 'art_c', { age: 300, fo: 5000, fr: 900, st: 3000, md: 2000, bio: 'illustrator' }) });
