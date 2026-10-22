@@ -29,7 +29,7 @@
     const addSignal = (points, reason) => { add(points, reason); signal = true; };
 
     if (mutual) add(2, '맞팔');
-    if (days < 180) add(2, '신생'); else if (days < 730) add(1, '2년미만');
+    if (days < 180) add(2, '신생'); else if (days < 730) add(1, '2년 미만');
     if (rate >= 80) add(4, '초다작'); else if (rate >= 20) add(2, '다작'); else if (rate >= 5) add(1, '활발');
     if (user.statuses >= 200 && mediaRatio < 0.15) add(1, '텍스트');
 
@@ -41,7 +41,7 @@
       if (teslaName || RX.teslaFan.test(bio)) add(2, '팬');
     }
     if (RX.aiHype.test(bio)) addSignal(3, 'AI 정보'); else if (RX.topic.test(bio)) addSignal(2, '주제');
-    if (RX.promo.test(bio)) addSignal(1, '광고문의');
+    if (RX.promo.test(bio)) addSignal(1, '광고 문의');
     if (RX.bait.test(bioAndText)) addSignal(2, '낚시');
 
     return { score, why, signal, mutual, active: rate >= 5 };

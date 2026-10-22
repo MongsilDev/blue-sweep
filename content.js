@@ -105,7 +105,7 @@
     const parentId = tweet.in_reply_to_user_id_str;
     if (result.active && parentId && parentId !== user.id && isKnownSlop(parentId)) {
       result.score += result.mutual ? 2 : 1;
-      result.why.push('품앗이답글');
+      result.why.push('품앗이 답글');
       result.signal = true;
     }
     return result;
@@ -246,7 +246,7 @@
     if (!auth) { lastError = '타임라인을 조금 내린 뒤 다시 눌러주세요.'; renderSoon(); return; }
     let status = 0;
     try { status = await callApi('blocks/destroy.json', userId); } catch { /* 연결 오류는 아래 안내로 처리 */ }
-    if (status !== 200) { lastError = `차단 해제 실패: ${status ? 'HTTP ' + status : '연결 오류'}`; refreshUser(userId); renderSoon(); return; }
+    if (status !== 200) { lastError = `차단 해제 실패: ${status ? 'HTTP ' + status : '연결 오류'}. 잠시 뒤 다시 눌러주세요.`; refreshUser(userId); renderSoon(); return; }
     allow(screenName);
     const entry = flagged.get(userId);
     if (entry) entry.status = 'allowed';
@@ -440,7 +440,7 @@
     const counts = [`탐지 ${entries.filter((e) => e.status !== 'blocked' && e.status !== 'allowed').length}`];
     if (cfg.mode === 'block' || cfg.totalBlocked) counts.push(`차단 ${cfg.totalBlocked}`);
     if (pending) counts.push(`대기 ${pending}`);
-    const pill = el('button', { id: 'bb-pill', textContent: broken ? 'Blue Sweep: 트윗 정보를 읽지 못했습니다' : `${modeName}: ${counts.join(', ')}` });
+    const pill = el('button', { id: 'bb-pill', textContent: broken ? 'Blue Sweep: 트윗 정보를 읽지 못했습니다. 새 버전이 있는지 확인해주세요.' : `${modeName}: ${counts.join(', ')}` });
     pill.addEventListener('click', () => { panelOpen = !panelOpen; render(); });
 
     const children = [];

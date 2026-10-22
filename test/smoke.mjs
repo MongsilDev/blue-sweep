@@ -58,7 +58,7 @@ for (const fn of t.intervals) await fn();
 await flush();
 assert.deepEqual(states(t), ['hide', 'hide', '-', '-', '-', '-', '-', 'mark']);
 assert.match(t.articles[0].dataset.bbLabel, /^@slop_a \d+점/);
-assert.match(t.articles[1].dataset.bbLabel, /품앗이답글/);
+assert.match(t.articles[1].dataset.bbLabel, /품앗이 답글/);
 assert.equal(t.fetches.length, 0);
 assert.ok(t.articles[0].labels.length === 1 && t.articles[2].labels.length === 0);
 
